@@ -1,12 +1,14 @@
 {
   "name": "@hynaweb/stage",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "description": "Ephemeral cloud environments in 5 seconds.",
   "main": "index.js",
   "bin": {
     "hyna-stage": "./index.js"
   },
   "type": "module",
+  "license": "UNLICENSED",
+  "author": "Harun (HYNAWEB)",
   "dependencies": {
     "chalk": "^5.3.0",
     "commander": "^11.0.0",
