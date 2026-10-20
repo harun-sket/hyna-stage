@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HYNA-Stage | Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        body { background: #030303; color: #fff; font-family: "Inter", sans-serif; overflow-x: hidden; margin: 0; padding: 0; }
+        .bento-card { background: rgba(10, 10, 10, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; backdrop-filter: blur(10px); }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .nav-logo { width: 32px; height: 32px; object-fit: contain; mix-blend-mode: screen; margin-right: 8px; vertical-align: middle; }
+        .logo-container { display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .nav-avatar { width: 40px; height: 40px; border-radius: 50%; background: #3B82F6; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; cursor: pointer; border: 2px solid transparent; transition: 0.2s; overflow: hidden; }
+        .nav-avatar:hover { border-color: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+        .nav-avatar img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .profile-avatar-large { width: 96px; height: 96px; border-radius: 50%; background: #3B82F6; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 2rem; cursor: pointer; border: 4px solid rgba(255,255,255,0.1); transition: 0.2s; overflow: hidden; }
+        .profile-avatar-large:hover { border-color: rgba(255,255,255,0.3); }
+        .profile-avatar-large img { width: 100%; height: 100%; object-fit: cover; display: none; }
+    </style>
+</head>
+<body class="min-h-screen p-6 md:p-10">
+
+    <nav class="flex justify-between items-center border-b border-white/10 pb-4 mb-10 max-w-4xl mx-auto">
+        <div class="flex items-center gap-3 font-extrabold text-xl tracking-tighter">
+            <div class="logo-container"><img src="logo.png" class="nav-logo"> HYNA-Stage</div>
+        </div>
+        <div class="flex items-center gap-5">
+            <div class="nav-avatar" id="navAvatar" onclick="openProfile()">
+                <span id="navAvatarText">U</span>
+                <img id="navAvatarImg" src="">
+            </div>
+            <button onclick="logout()" class="text-red-500 font-semibold text-sm border border-red-500/30 px-4 py-2 rounded-lg hover:bg-red-500/10 transition">Log Out</button>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-extrabold mb-8">Dashboard</h1>
+        
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <div class="bento-card p-6 text-center">
+                <div class="text-3xl font-extrabold mb-1" id="statActive">0</div>
+                <div class="text-xs text-gray-500 uppercase font-semibold">Active Now</div>
+            </div>
+            <div class="bento-card p-6 text-center">
+                <div class="text-3xl font-extrabold mb-1 text-blue-500" id="statTotal">0</div>
+                <div class="text-xs text-gray-500 uppercase font-semibold">Total Deployed</div>
+            </div>
+        </div>
+
+        <div class="bento-card p-6 mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-sm font-bold text-gray-400 uppercase">CLI Quick Start</h2>
+                <span class="text-xs text-blue-400 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20">API Key Auto-Injected</span>
+            </div>
+            <div class="bg-black border border-white/10 rounded-lg p-4 font-mono text-sm text-gray-300 mb-4 overflow-x-auto">
+                <div class="mb-2 whitespace-nowrap"><span class="text-green-400">$</span> npm install -g @hynaweb/stage</div>
+                <div class="whitespace-nowrap"><span class="text-green-400">$</span> <span id="dynamicCmd">hyna-stage up</span></div>
+            </div>
+            <label class="text-xs text-gray-400 font-bold uppercase">Your API Key</label>
+            <div class="flex gap-2 mt-1">
+                <input type="text" id="apiKey" readonly onclick="this.select()" class="w-full bg-black border border-white/10 text-blue-500 p-3 rounded-lg font-mono text-sm focus:outline-none">
+                <button onclick="navigator.clipboard.writeText(document.getElementById('dynamicCmd').innerText); alert('Command Copied!')" class="bg-white text-black px-4 rounded-lg font-bold text-sm hover:scale-105 transition">Copy</button>
+            </div>
+        </div>
+
+        <div class="bento-card overflow-hidden">
+            <div class="p-5 border-b border-white/10"><h2 class="font-bold">Environments</h2></div>
+            <div id="envList" class="p-5 text-gray-500 text-sm">Loading...</div>
+        </div>
+    </main>
+
+    <div id="profileModal" class="modal">
+        <div class="bento-card p-8 w-full max-w-sm relative shadow-[0_0_50px_rgba(59,130,246,0.15)] text-center">
+            <button onclick="closeProfile()" class="absolute top-4 right-4 text-gray-500 hover:text-white text-2xl">&times;</button>
+            <h2 class="text-2xl font-extrabold mb-6">Profile Settings</h2>
+            
+            <div class="relative inline-block mb-6">
+                <div class="profile-avatar-large mx-auto" onclick="document.getElementById('avatarUpload').click()">
+                    <span id="modalAvatarText">U</span>
+                    <img id="modalAvatarImg" src="">
+                </div>
+                <input type="file" id="avatarUpload" style="display:none;" accept="image/*">
+                <div class="text-xs text-blue-400 mt-2 cursor-pointer" onclick="document.getElementById('avatarUpload').click()">Change Picture</div>
+            </div>
+            
+            <div class="text-left mb-4">
+                <label class="text-xs text-gray-400 font-bold uppercase">Full Name</label>
+                <input type="text" id="profileName" class="w-full bg-black border border-white/10 text-white p-3 rounded-lg mt-1 focus:outline-none focus:border-blue-500">
+            </div>
+            <div class="text-left mb-6">
+                <label class="text-xs text-gray-400 font-bold uppercase">Email</label>
+                <input type="email" id="profileEmail" disabled class="w-full bg-black border border-white/10 text-gray-500 p-3 rounded-lg mt-1 focus:outline-none">
+            </div>
+            <button onclick="saveProfile()" class="w-full bg-white text-black font-bold py-3 rounded-lg hover:scale-[1.02] transition">Save Changes</button>
+        </div>
+    </div>
+
+    <script>
+        const sb = supabase.createClient("https://mczesspakhkomlnmfstw.supabase.co", "sb_publishable_sG0q8k6txKHOihBduyr67w_UKfolcvj");
+        let currentUser = null;
+        
+        async function checkSession() {
+            // Wait a moment for Supabase to process the #access_token hash
+            const { data: { session } } = await sb.auth.getSession();
+            
+            if (session) {
+                currentUser = session.user;
+                await loadDashboard();
+            } else {
+                // Listen for OAuth redirect token processing
+                sb.auth.onAuthStateChange(async (event, newSession) => {
+                    if (newSession && !currentUser) {
+                        currentUser = newSession.user;
+                        await loadDashboard();
+                    } else if (event === 'SIGNED_OUT') {
+                        window.location.href = "/";
+                    }
+                });
+                
+                // Give it 2 seconds. If still no user and no hash token, kick them out.
+                setTimeout(() => {
+                    if (!currentUser && !window.location.hash.includes('access_token')) {
+                        window.location.href = "/";
+                    }
+                }, 2000);
+            }
+        }
+
+        async function loadDashboard() {
+            // Clear the ugly OAuth hash from the URL
+            if (window.location.hash) {
+                window.history.replaceState(null, null, window.location.pathname);
+            }
+
+            let prof = await sb.from("profiles").select("*").eq("id", currentUser.id).single();
+            
+            if (!prof.data) {
+                await sb.from("profiles").insert({ id: currentUser.id, full_name: currentUser.user_metadata.full_name || "User" });
+                prof = await sb.from("profiles").select("*").eq("id", currentUser.id).single();
+            }
+
+            if (prof.data) {
+                let name = prof.data.full_name || "User";
+                document.getElementById("navAvatarText").innerText = name.charAt(0).toUpperCase();
+                document.getElementById("modalAvatarText").innerText = name.charAt(0).toUpperCase();
+                document.getElementById("profileName").value = name;
+                document.getElementById("profileEmail").value = currentUser.email || "";
+                
+                if (prof.data.avatar_url) {
+                    document.getElementById("navAvatarImg").src = prof.data.avatar_url;
+                    document.getElementById("navAvatarImg").style.display = "block";
+                    document.getElementById("navAvatarText").style.display = "none";
+                    document.getElementById("modalAvatarImg").src = prof.data.avatar_url;
+                    document.getElementById("modalAvatarImg").style.display = "block";
+                    document.getElementById("modalAvatarText").style.display = "none";
+                }
+            }
+            
+            let keys = await sb.from("api_keys").select("key").eq("user_id", currentUser.id).single();
+            if (keys.data) {
+                document.getElementById("apiKey").value = keys.data.key;
+                document.getElementById("dynamicCmd").innerHTML = `hyna-stage up --key=${keys.data.key}`;
+            }
+            
+            loadEnvs();
+        }
+        
+        function openProfile() { document.getElementById("profileModal").classList.add("active"); }
+        function closeProfile() { document.getElementById("profileModal").classList.remove("active"); }
+        
+        document.getElementById("avatarUpload").addEventListener("change", async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const fileName = currentUser.id + "-" + Date.now() + ".png";
+            
+            document.getElementById("modalAvatarText").innerText = "...";
+            
+            const { error: upErr } = await sb.storage.from("avatars").upload(fileName, file);
+            if (upErr) { alert("Upload failed: " + upErr.message); return; }
+            
+            const { data: urlData } = sb.storage.from("avatars").getPublicUrl(fileName);
+            await sb.from("profiles").update({ avatar_url: urlData.publicUrl }).eq("id", currentUser.id);
+            
+            document.getElementById("navAvatarImg").src = urlData.publicUrl;
+            document.getElementById("navAvatarImg").style.display = "block";
+            document.getElementById("navAvatarText").style.display = "none";
+            document.getElementById("modalAvatarImg").src = urlData.publicUrl;
+            document.getElementById("modalAvatarImg").style.display = "block";
+            document.getElementById("modalAvatarText").style.display = "none";
+            alert("Profile picture updated!");
+        });
+        
+        async function saveProfile() {
+            const name = document.getElementById("profileName").value;
+            await sb.from("profiles").update({ full_name: name }).eq("id", currentUser.id);
+            alert("Profile saved!");
+            closeProfile();
+        }
+        
+        async function loadEnvs() {
+            let res = await sb.from("environments").select("*").eq("user_id", currentUser.id).order("created_at", { ascending: false });
+            let active = res.data.filter(e => e.status === "running");
+            document.getElementById("statActive").innerText = active.length;
+            document.getElementById("statTotal").innerText = res.data.length;
+            
+            let list = document.getElementById("envList");
+            if (res.data.length === 0) { list.innerHTML = "No environments found. Run <code>hyna-stage up</code> in your terminal."; return; }
+            
+            let htmlStr = "";
+            for (let i = 0; i < res.data.length; i++) {
+                let e = res.data[i];
+                let isRunning = e.status === "running";
+                let btn = isRunning ? '<button onclick="destroy(\'' + e.sandbox_id + '\')" class="text-red-500 border border-red-500/30 px-3 py-1 rounded-md text-xs font-bold hover:bg-red-500/10 ml-auto">Destroy</button>' : '<span class="text-green-500 text-xs font-bold ml-auto">Saved</span>';
+                let url = isRunning ? '<a href="' + e.url + '" target="_blank" class="text-blue-500 font-mono text-sm hover:underline block mt-1">' + e.url + '</a>' : '<span class="text-gray-600 text-sm block mt-1">Destroyed</span>';
+                
+                htmlStr += '<div class="flex items-center justify-between py-4 border-b border-white/10 last:border-0">';
+                htmlStr += '<div><div class="font-mono font-bold text-white">' + e.sandbox_id + '</div>' + url + '</div>';
+                htmlStr += btn;
+                htmlStr += '</div>';
+            }
+            list.innerHTML = htmlStr;
+        }
+        
+        async function destroy(id) {
+            if(!confirm("Destroy sandbox?")) return;
+            await sb.from("environments").update({ status: "destroyed" }).eq("sandbox_id", id);
+            await fetch("https://mczesspakhkomlnmfstw.supabase.co/functions/v1/destroy-stage", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sandbox_id: id }) });
+            loadEnvs();
+        }
+        
+        async function logout() { await sb.auth.signOut(); window.location.href = "/"; }
+        
+        checkSession();
+    </script>
+</body>
+</html>

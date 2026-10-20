@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HYNA-Stage Test</title>
+    <style>
+        body {
+            background-color: #030303;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .glow {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: #3B82F6;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.3;
+            z-index: -1;
+        }
+        .card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #60A5FA, #3B82F6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        p {
+            color: #9CA3AF;
+            margin-bottom: 20px;
+        }
+        .status {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        .time {
+            margin-top: 20px;
+            font-family: monospace;
+            color: #6B7280;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="glow"></div>
+    <div class="card">
+        <h1>🚀 HYNA-Stage is LIVE</h1>
+        <p>This environment was provisioned in under 5 seconds.</p>
+        <div class="status">● RUNNING</div>
+        <div class="time" id="clock">Loading time...</div>
+    </div>
+
+    <script>
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = 'Server Time: ' + now.toLocaleTimeString();
+        }, 1000);
+    </script>
+</body>
+</html>
