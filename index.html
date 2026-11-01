@@ -10,6 +10,34 @@
         body { background-color: #000; color: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
         .bg-grid { background-image: radial-gradient(#222 1px, transparent 1px); background-size: 24px 24px; }
     </style>
+
+    
+    <script>
+        // HYNA-STAGE SILENT ATTRIBUTION TRACKER
+        const urlParams = new URLSearchParams(window.location.search);
+        const ref = urlParams.get('ref');
+        
+        if (ref) {
+            // 1. Save to browser for future signups
+            localStorage.setItem('hyna_ref', ref);
+            console.log('[HYNA] Attributed to:', ref);
+
+            // 2. Log the click to Supabase
+            fetch('https://mczesspakhkomlnmfstw.supabase.co/rest/v1/referrals', {
+                method: 'POST',
+                headers: {
+                    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jemVzc3Bha2hrb21sbm1mc3R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0MDE3NTQsImV4cCI6MjEwNzk3Nzc1NH0.yPrC1t9pLZjrffY21hri2bUskuukiRldtiHslhaY3fg',
+                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jemVzc3Bha2hrb21sbm1mc3R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0MDE3NTQsImV4cCI6MjEwNzk3Nzc1NH0.yPrC1t9pLZjrffY21hri2bUskuukiRldtiHslhaY3fg',
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({
+                    ref_code: ref,
+                    project: 'hyna-stage'
+                })
+            }).catch(e => console.error('[HYNA] Tracking failed', e));
+        }
+    </script>
 </head>
 <body class="bg-grid min-h-screen flex flex-col pt-24">
 
