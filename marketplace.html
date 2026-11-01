@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketplace - HYNA-Stage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background-color: #000; color: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        .bg-grid { background-image: radial-gradient(#1a1a1a 1px, transparent 1px); background-size: 24px 24px; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        input, textarea { outline: none; }
+    </style>
+</head>
+<body class="bg-grid min-h-screen flex flex-col pt-24">
+
+    <!-- DYNAMIC ISLAND NAV -->
+    <div class="fixed top-4 left-0 right-0 z-50 flex justify-center px-4">
+        <nav class="flex items-center justify-between gap-4 bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 rounded-full px-5 py-2.5 shadow-[0_0_30px_rgba(0,0,0,0.8)] transition-all">
+            <a href="index.html" class="flex items-center gap-2 font-bold text-white shrink-0">
+                <img src="logo.png" class="w-5 h-5" onerror="this.style.display='none'"> HYNA
+            </a>
+            <div class="hidden sm:flex items-center gap-6 text-sm text-gray-400 px-4">
+                <a href="index.html" class="hover:text-white transition">Home</a>
+                <a href="marketplace.html" class="text-white font-bold border-b-2 border-indigo-500 pb-1">Marketplace</a>
+                <a href="docs.html" class="hover:text-white transition">Docs</a>
+                <a href="dashboard.html" class="hover:text-white transition">Dashboard</a>
+            </div>
+            <div class="flex items-center gap-2 border-l border-white/10 pl-4">
+                <button id="navSignInBtn" onclick="openLoginModal()" class="text-sm font-bold bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition hidden">Sign In</button>
+
+                <!-- Profile Dropdown -->
+                <div id="navProfileGroup" class="relative group hidden">
+                    <button class="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition py-1.5">
+                        <div id="navAvatar" class="w-8 h-8 rounded-full bg-[#222] border border-[#333] flex items-center justify-center font-bold text-white uppercase overflow-hidden text-xs">U</div>
+                        <span id="navBadge" class="hidden text-[9px] bg-indigo-500 text-white px-2 py-0.5 rounded-full font-bold">DEV</span>
+                    </button>
+                    <div class="absolute right-0 mt-2 w-56 bg-[#0a0a0a] border border-[#222] rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                        <div class="px-4 py-3 border-b border-[#222]">
+                            <p id="navName" class="text-sm text-white font-medium truncate">User</p>
+                            <p id="navUsername" class="text-xs text-gray-500 truncate">@user</p>
+                        </div>
+                        <button onclick="handleLogout()" class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-[#111] transition">Log out</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto w-full px-6 py-12 flex-1">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
+                Template <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Marketplace</span>
+            </h1>
+            <p class="text-gray-400 max-w-lg mx-auto mb-8 text-sm md:text-base leading-relaxed">
+                Choose a pre-configured environment to forge instantly, or share your own with the community.
+            </p>
+            
+            <button onclick="openSubmitModal()" class="hidden bg-indigo-600 text-white font-bold px-8 py-3 rounded-md hover:bg-indigo-500 transition shadow-[0_0_20px_rgba(79,70,229,0.4)]" id="submitBtn">
+                + Submit Template
+            </button>
+            <button onclick="handleDevBtnClick()" class="hidden bg-[#0a0a0a] border border-indigo-500 text-indigo-400 font-bold px-8 py-3 rounded-md hover:bg-indigo-500 hover:text-white transition" id="becomeDevBtn">
+                Apply as Creator
+            </button>
+        </div>
+
+        <div id="template-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+            <div class="col-span-full text-center text-indigo-400 animate-pulse font-mono py-10">Fetching templates...</div>
+        </div>
+    </main>
+
+    <!-- LOGIN MODAL -->
+    <div id="loginModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] hidden backdrop-blur-sm">
+        <div class="bg-[#0a0a0a] border border-[#222] p-8 rounded-xl max-w-sm w-full mx-4 relative shadow-2xl text-left">
+            <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white font-bold text-xl">&times;</button>
+            <h2 class="text-2xl font-bold text-white mb-6">Welcome Back</h2>
+            
+            <button onclick="handleGitHubLogin()" class="w-full bg-[#24292f] text-white font-bold py-3 rounded-md hover:bg-[#1b1f23] transition flex items-center justify-center gap-2 mb-4">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.756-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                Continue with GitHub
+            </button>
+
+            <div class="flex items-center my-4">
+                <div class="flex-grow border-t border-[#222]"></div>
+                <span class="flex-shrink-0 mx-4 text-gray-500 text-xs uppercase">Or</span>
+                <div class="flex-grow border-t border-[#222]"></div>
+            </div>
+
+            <input type="email" id="loginEmail" placeholder="Email" class="w-full bg-black border border-[#222] text-white p-3 rounded-md mb-4 focus:outline-none focus:border-indigo-500 font-mono text-sm">
+            <input type="password" id="loginPassword" placeholder="Password" class="w-full bg-black border border-[#222] text-white p-3 rounded-md mb-2 focus:outline-none focus:border-indigo-500 font-mono text-sm">
+            <div id="loginStatus" class="text-xs text-red-500 mb-4 h-4"></div>
+            <button onclick="handleWebLogin()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-md hover:bg-indigo-500 transition">Sign In / Sign Up</button>
+        </div>
+    </div>
+
+    <!-- CREATOR ONBOARDING MODAL -->
+    <div id="devModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] hidden backdrop-blur-sm">
+        <div class="bg-[#0a0a0a] border border-[#222] p-8 rounded-xl max-w-md w-full mx-4 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+            <button onclick="closeDevModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white font-bold text-xl">&times;</button>
+            
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-500/50">
+                    <svg class="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                </div>
+                <h2 class="text-2xl font-bold text-white mb-2">Creator Onboarding</h2>
+                <p class="text-xs text-gray-400">Set up your developer identity to publish templates. All applications undergo a <strong class="text-indigo-400">48-hour review period</strong>.</p>
+            </div>
+
+            <label class="text-xs text-gray-500 font-bold mb-1 block uppercase">Creator Handle</label>
+            <div class="flex items-center bg-black border border-[#222] rounded-md mb-4 focus-within:border-indigo-500 transition">
+                <span class="pl-3 text-gray-500 font-mono text-sm">@</span>
+                <input type="text" id="devHandle" placeholder="harun" class="w-full bg-transparent text-white p-3 focus:outline-none font-mono text-sm">
+            </div>
+
+            <label class="text-xs text-gray-500 font-bold mb-1 block uppercase">Short Bio</label>
+            <textarea id="devBio" placeholder="Building high-performance Node backends..." class="w-full bg-black border border-[#222] text-white p-3 rounded-md mb-4 focus:outline-none focus:border-indigo-500 font-mono text-sm" rows="3"></textarea>
+
+            <div class="flex items-start gap-3 mb-6 bg-[#111] p-3 rounded border border-[#222]">
+                <input type="checkbox" id="devAgree" class="mt-1 accent-indigo-500">
+                <label for="devAgree" class="text-xs text-gray-400 leading-tight">
+                    I agree to the <a href="#" class="text-indigo-400 underline">Creator Guidelines</a> and understand my account will be in a 48-hour review state.
+                </label>
+            </div>
+
+            <div id="devStatus" class="text-xs text-red-500 mb-4 h-4 text-center"></div>
+            <button onclick="applyForCreator()" class="w-full bg-white text-black font-bold py-3 rounded-md hover:bg-gray-200 transition">Submit Application</button>
+        </div>
+    </div>
+
+    <!-- SUBMIT TEMPLATE MODAL -->
+    <div id="submitModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] hidden backdrop-blur-sm">
+        <div class="bg-[#0a0a0a] border border-[#222] p-8 rounded-xl max-w-md w-full mx-4 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+            <button onclick="closeSubmitModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white font-bold text-xl">&times;</button>
+            <h2 class="text-2xl font-bold text-white mb-6">Publish Template</h2>
+            
+            <label class="text-xs text-gray-500 font-bold mb-1 block uppercase">Template Name</label>
+            <input type="text" id="subName" placeholder="e.g. rust-axum" class="w-full bg-black border border-[#222] text-white p-3 rounded-md mb-4 focus:outline-none focus:border-indigo-500 font-mono text-sm">
+            
+            <label class="text-xs text-gray-500 font-bold mb-1 block uppercase">Description</label>
+            <textarea id="subDesc" placeholder="A fast Rust web server..." class="w-full bg-black border border-[#222] text-white p-3 rounded-md mb-4 focus:outline-none focus:border-indigo-500 font-mono text-sm" rows="2"></textarea>
+            
+            <label class="text-xs text-gray-500 font-bold mb-1 block uppercase">Cover Image</label>
+            <input type="file" id="subImage" accept="image/*" class="w-full bg-black border border-[#222] text-white p-2 rounded-md mb-4 focus:outline-none focus:border-indigo-500 font-mono text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#222] file:text-white hover:file:bg-[#333]">
+            
+            <label class="text-xs text-gray-500 font-bold mb-1 block uppercase">Template JSON</label>
+            <textarea id="subJson" placeholder='{"port": 3000, "install": "cargo build", "start": "cargo run", "test": "cargo test", "files": {"main.rs": "..."}}' class="w-full bg-black border border-[#222] text-white p-3 rounded-md mb-4 focus:outline-none focus:border-indigo-500 font-mono text-xs" rows="4"></textarea>
+            
+            <div id="subStatus" class="text-xs text-indigo-400 mb-4 h-4"></div>
+            <button onclick="handleSubmitTemplate()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-md hover:bg-indigo-500 transition">Publish to Marketplace</button>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://mczesspakhkomlnmfstw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jemVzc3Bha2hrb21sbm1mc3R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0MDE3NTQsImV4cCI6MjEwNzk3Nzc1NH0.yPrC1t9pLZjrffY21hri2bUskuukiRldtiHslhaY3fg';
+        
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let currentUser = null;
+        let isDev = false;
+        let isPending = false;
+
+        // UI Toggles
+        function openLoginModal() { document.getElementById('loginModal').classList.replace('hidden', 'flex'); }
+        function closeLoginModal() { document.getElementById('loginModal').classList.replace('flex', 'hidden'); }
+        function openDevModal() { document.getElementById('devModal').classList.replace('hidden', 'flex'); }
+        function closeDevModal() { document.getElementById('devModal').classList.replace('flex', 'hidden'); }
+        function openSubmitModal() { 
+            if (!isDev) return alert("You must be a Creator to publish.");
+            document.getElementById('submitModal').classList.replace('hidden', 'flex'); 
+        }
+        function closeSubmitModal() { document.getElementById('submitModal').classList.replace('flex', 'hidden'); }
+
+        // Auth & Profile Logic
+        async function loadProfile() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            
+            if (!session) {
+                document.getElementById('navSignInBtn').classList.remove('hidden');
+                document.getElementById('navProfileGroup').classList.add('hidden');
+                document.getElementById('submitBtn').classList.add('hidden');
+                document.getElementById('becomeDevBtn').classList.add('hidden');
+                return;
+            }
+
+            document.getElementById('navSignInBtn').classList.add('hidden');
+            document.getElementById('navProfileGroup').classList.remove('hidden');
+            currentUser = session.user;
+
+            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).single();
+            
+            if (profile) {
+                document.getElementById('navName').innerText = profile.full_name || 'User';
+                document.getElementById('navUsername').innerText = profile.username ? '@' + profile.username : '@' + currentUser.email.split('@')[0];
+                
+                if (profile.avatar_url) {
+                    document.getElementById('navAvatar').innerHTML = `<img src="${profile.avatar_url}" class="w-full h-full object-cover">`;
+                } else {
+                    document.getElementById('navAvatar').innerText = (profile.full_name || 'U').charAt(0).toUpperCase();
+                }
+
+                // 48 HOUR LOGIC
+                isDev = profile.is_dev || false;
+                
+                if (profile.dev_applied_at && !isDev) {
+                    const appliedAt = new Date(profile.dev_applied_at).getTime();
+                    const now = new Date().getTime();
+                    const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
+
+                    if (now - appliedAt >= twoDaysMs) {
+                        await supabaseClient.from('profiles').update({ is_dev: true }).eq('id', currentUser.id);
+                        isDev = true;
+                        isPending = false;
+                    } else {
+                        isPending = true;
+                    }
+                }
+
+                if (isDev) {
+                    document.getElementById('navBadge').classList.remove('hidden');
+                    document.getElementById('submitBtn').classList.remove('hidden');
+                    document.getElementById('becomeDevBtn').classList.add('hidden');
+                } else if (isPending) {
+                    document.getElementById('navBadge').classList.add('hidden');
+                    document.getElementById('submitBtn').classList.add('hidden');
+                    document.getElementById('becomeDevBtn').classList.remove('hidden');
+                    document.getElementById('becomeDevBtn').innerText = "Under Review ⏳";
+                    document.getElementById('becomeDevBtn').classList.replace('border-indigo-500', 'border-yellow-500');
+                    document.getElementById('becomeDevBtn').classList.replace('text-indigo-400', 'text-yellow-500');
+                } else {
+                    document.getElementById('navBadge').classList.add('hidden');
+                    document.getElementById('submitBtn').classList.add('hidden');
+                    document.getElementById('becomeDevBtn').classList.remove('hidden');
+                    document.getElementById('becomeDevBtn').innerText = "Apply as Creator";
+                }
+            }
+        }
+
+        function handleDevBtnClick() {
+            if (isPending) {
+                alert("Your application is currently under review. Please check back in 48 hours.");
+            } else {
+                openDevModal();
+            }
+        }
+
+        async function applyForCreator() {
+            if (!currentUser) return;
+            const handle = document.getElementById('devHandle').value.trim().toLowerCase();
+            const bio = document.getElementById('devBio').value.trim();
+            const agreed = document.getElementById('devAgree').checked;
+            const status = document.getElementById('devStatus');
+
+            if (!handle) return status.innerText = "Handle is required.";
+            if (!agreed) return status.innerText = "You must agree to the guidelines.";
+
+            status.innerText = "Submitting application...";
+            status.classList.replace('text-red-500', 'text-indigo-400');
+
+            const { error } = await supabaseClient.from('profiles').update({ 
+                username: handle,
+                bio: bio,
+                dev_applied_at: new Date().toISOString()
+            }).eq('id', currentUser.id);
+            
+            if (error) {
+                status.innerText = "Error: " + error.message;
+                status.classList.replace('text-indigo-400', 'text-red-500');
+            } else {
+                status.innerText = "Application received! Under review.";
+                status.classList.replace('text-red-500', 'text-green-400');
+                setTimeout(() => { closeDevModal(); loadProfile(); }, 1500);
+            }
+        }
+
+        async function handleWebLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const status = document.getElementById('loginStatus');
+            status.innerText = "Authenticating...";
+            let { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error && error.message.includes('Invalid login credentials')) {
+                const { error: signUpError } = await supabaseClient.auth.signUp({ email, password });
+                if (signUpError) return status.innerText = signUpError.message;
+                status.innerText = "Account created!";
+            } else if (error) return status.innerText = error.message;
+            setTimeout(() => { closeLoginModal(); loadProfile(); loadTemplates(); }, 1000);
+        }
+
+        async function handleGitHubLogin() {
+            await supabaseClient.auth.signInWithOAuth({ provider: 'github', options: { redirectTo: window.location.href } });
+        }
+        async function handleLogout() { await supabaseClient.auth.signOut(); window.location.reload(); }
+
+        async function loadTemplates() {
+            const grid = document.getElementById('template-grid');
+            const { data, error } = await supabaseClient.from('templates').select('*').order('name');
+            if (error) return grid.innerHTML = `<div class="text-red-500 text-center col-span-full">Error: ${error.message}</div>`;
+            grid.innerHTML = '';
+            if (data.length === 0) return grid.innerHTML = '<div class="text-gray-500 text-center col-span-full">No templates found.</div>';
+            data.forEach(t => {
+                const card = document.createElement('div');
+                card.className = "bg-[#050505] border border-[#222] p-6 rounded-xl hover:border-indigo-500 transition-all flex flex-col";
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold capitalize text-white">${t.name}</h3>
+                            <p class="text-xs text-gray-500 mt-1">by @${t.creator_name || 'hyna'}</p>
+                        </div>
+                        <span class="text-xs text-indigo-400 border border-indigo-400/30 px-2 py-1 rounded bg-indigo-500/10">v1.0</span>
+                    </div>
+                    ${t.cover_image ? `<img src="${t.cover_image}" class="w-full h-32 object-cover rounded-lg mb-4 border border-[#222]">` : '<div class="w-full h-32 bg-[#111] rounded-lg mb-4 border border-[#222] flex items-center justify-center text-gray-600 text-xs">No Cover Image</div>'}
+                    <p class="text-gray-400 text-sm mb-6 flex-1">${t.description || 'No description.'}</p>
+                    <button class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded transition-colors" onclick="forge('${t.name}')">Forge Environment</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        async function handleSubmitTemplate() {
+            if (!isDev) return alert("You must be an approved Creator.");
+            const name = document.getElementById('subName').value;
+            const desc = document.getElementById('subDesc').value;
+            const imageFile = document.getElementById('subImage').files[0];
+            const jsonStr = document.getElementById('subJson').value;
+            const statusText = document.getElementById('subStatus');
+            if (!name || !jsonStr) return alert("Name and JSON are required.");
+            let parsedJson;
+            try { parsedJson = JSON.parse(jsonStr); } catch (e) { return alert("Invalid JSON."); }
+            let coverUrl = null;
+            if (imageFile) {
+                statusText.innerText = "Uploading...";
+                const fileName = `cover-${Date.now()}.${imageFile.name.split('.').pop()}`;
+                const { error: uploadError } = await supabaseClient.storage.from('covers').upload(fileName, imageFile);
+                if (uploadError) return statusText.innerText = "Upload failed: " + uploadError.message;
+                coverUrl = supabaseClient.storage.from('covers').getPublicUrl(fileName).data.publicUrl;
+            }
+            statusText.innerText = "Publishing...";
+            const { error } = await supabaseClient.from('templates').insert({
+                name: name, description: desc, creator_id: currentUser.id,
+                creator_name: document.getElementById('navUsername').innerText.replace('@', ''),
+                cover_image: coverUrl, port: parsedJson.port || 3000,
+                install_cmd: parsedJson.install || "", start_cmd: parsedJson.start || "",
+                test_cmd: parsedJson.test || "", files: parsedJson.files || {}
+            });
+            if (error) return statusText.innerText = "DB Error: " + error.message;
+            statusText.innerText = "Published!";
+            setTimeout(() => { closeSubmitModal(); loadTemplates(); statusText.innerText = ""; }, 1000);
+        }
+
+        function forge(template) {
+            alert(`Run in Termux:\n\nnode ~/hyna-stage/bin/cli.js init ${template}`);
+        }
+
+        document.addEventListener("DOMContentLoaded", () => { loadProfile(); loadTemplates(); });
+    </script>
+</body>
+</html>

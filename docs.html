@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docs - HYNA-Stage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #000; color: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        .bg-grid { background-image: radial-gradient(#1a1a1a 1px, transparent 1px); background-size: 24px 24px; }
+        .code-block { background: #050505; border: 1px solid #222; border-radius: 8px; padding: 1rem; overflow-x: auto; font-size: 0.85rem; }
+        .code-comment { color: #6b7280; }
+        .code-cmd { color: #60a5fa; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-grid min-h-screen flex flex-col pt-24">
+
+    <!-- DYNAMIC ISLAND NAV -->
+    <div class="fixed top-4 left-0 right-0 z-50 flex justify-center px-4">
+        <nav class="flex items-center justify-between gap-4 bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 rounded-full px-5 py-2.5 shadow-[0_0_30px_rgba(0,0,0,0.8)] transition-all">
+            <a href="index.html" class="flex items-center gap-2 font-bold text-white shrink-0">
+                <img src="logo.png" class="w-5 h-5" onerror="this.style.display='none'"> HYNA
+            </a>
+            <div class="hidden sm:flex items-center gap-6 text-sm text-gray-400 px-4">
+                <a href="index.html" class="hover:text-white transition">Home</a>
+                <a href="marketplace.html" class="hover:text-white transition">Marketplace</a>
+                <a href="docs.html" class="text-white font-bold border-b-2 border-indigo-500 pb-1">Docs</a>
+                <a href="dashboard.html" class="hover:text-white transition">Dashboard</a>
+            </div>
+            <div class="flex items-center gap-2 border-l border-white/10 pl-4">
+                <a href="dashboard.html" class="text-sm font-bold bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition">Sign In</a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto w-full px-6 py-12 flex-1 flex flex-col md:flex-row gap-12">
+        <!-- Sidebar -->
+        <aside class="w-full md:w-64 shrink-0 hidden md:block">
+            <div class="sticky top-28 space-y-6">
+                <div>
+                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Getting Started</h3>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#intro" class="text-indigo-400 font-medium">Introduction</a></li>
+                        <li><a href="#install" class="hover:text-white transition">Installation</a></li>
+                        <li><a href="#auth" class="hover:text-white transition">Authentication</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Commands</h3>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#init" class="hover:text-white transition">Forge (init)</a></li>
+                        <li><a href="#templates" class="hover:text-white transition">Templates</a></li>
+                    </ul>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Content -->
+        <div class="flex-1 space-y-16">
+            <section id="intro">
+                <h1 class="text-4xl font-bold mb-4">Documentation</h1>
+                <p class="text-gray-400 leading-relaxed mb-6">HYNA-Stage allows you to instantly spin up ephemeral cloud sandboxes for testing and deployment. No Docker, no YAML, no waiting.</p>
+            </section>
+
+            <section id="install">
+                <h2 class="text-2xl font-bold mb-4 text-indigo-400">1. Installation</h2>
+                <p class="text-gray-400 text-sm mb-4">Install the CLI globally via npm to access it anywhere in your terminal.</p>
+                <div class="code-block">
+                    <span class="code-comment"># Install globally</span><br>
+                    <span class="code-cmd">$</span> npm i -g @hynaweb/stage
+                </div>
+            </section>
+
+            <section id="auth">
+                <h2 class="text-2xl font-bold mb-4 text-indigo-400">2. Authentication</h2>
+                <p class="text-gray-400 text-sm mb-4">Link your CLI to your HYNA-Stage account to deploy to your dashboard.</p>
+                <div class="code-block">
+                    <span class="code-comment"># Authenticate (one-time)</span><br>
+                    <span class="code-cmd">$</span> hyna-stage login
+                </div>
+            </section>
+
+            <section id="init">
+                <h2 class="text-2xl font-bold mb-4 text-indigo-400">3. Forge an Environment</h2>
+                <p class="text-gray-400 text-sm mb-4">Spin up a new sandbox using a pre-configured template. You can specify a Time-To-Live (TTL) in seconds.</p>
+                <div class="code-block">
+                    <span class="code-comment"># Forge a node environment for 1 hour</span><br>
+                    <span class="code-cmd">$</span> hyna-stage init node --ttl 3600
+                </div>
+            </section>
+
+            <section id="templates">
+                <h2 class="text-2xl font-bold mb-4 text-indigo-400">4. Marketplace Templates</h2>
+                <p class="text-gray-400 text-sm mb-4">Browse community templates from the web UI, or list them via the CLI.</p>
+                <div class="code-block">
+                    <span class="code-comment"># List all available templates</span><br>
+                    <span class="code-cmd">$</span> hyna-stage templates
+                </div>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

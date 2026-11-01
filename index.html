@@ -3,84 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HYNA-Stage | Ephemeral microVMs for AI Agents</title>
+    <title>HYNA-Stage | Ephemeral Cloud Sandboxes</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background: #000; color: #ededed; font-family: 'Inter', sans-serif; }
-        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        body { background-color: #000; color: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        .bg-grid { background-image: radial-gradient(#222 1px, transparent 1px); background-size: 24px 24px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased">
-    
-    <!-- Nav -->
-    <nav class="flex justify-between items-center px-6 py-4 border-b border-[#1f1f1f] bg-black/80 backdrop-blur-md">
-        <div class="flex items-center gap-2 font-bold text-lg">
-            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-            HYNA-Stage
-        </div>
-        <div class="flex gap-6 text-sm font-medium text-gray-400">
-            <a href="docs.html" class="hover:text-white transition">Docs</a>
-            <a href="https://github.com/harun-sket/hyna-stage" target="_blank" class="hover:text-white transition">GitHub</a>
-        </div>
-    </nav>
+<body class="bg-grid min-h-screen flex flex-col pt-24">
 
-    <!-- Hero -->
-    <main class="flex-1 max-w-4xl mx-auto px-6 pt-24 pb-16 w-full">
-        <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-6">
-            Ephemeral Firecracker microVMs for AI Agents. <span class="text-gray-500">5.1s Warm Start.</span>
+    <!-- DYNAMIC ISLAND NAV -->
+    <div class="fixed top-4 left-0 right-0 z-50 flex justify-center px-4">
+        <nav class="flex items-center justify-between gap-4 bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 rounded-full px-5 py-2.5 shadow-[0_0_30px_rgba(0,0,0,0.8)] transition-all">
+            <a href="index.html" class="flex items-center gap-2 font-bold text-white shrink-0">
+                <img src="logo.png" class="w-5 h-5" onerror="this.style.display='none'"> HYNA
+            </a>
+            <div class="hidden sm:flex items-center gap-6 text-sm text-gray-400 px-4">
+                <a href="index.html" class="text-white font-bold border-b-2 border-indigo-500 pb-1">Home</a>
+                <a href="marketplace.html" class="hover:text-white transition">Marketplace</a>
+                <a href="docs.html" class="hover:text-white transition">Docs</a>
+                <a href="dashboard.html" class="hover:text-white transition">Dashboard</a>
+            </div>
+            <div class="flex items-center gap-2 border-l border-white/10 pl-4">
+                <button onclick="handleNavClick()" id="navBtn" class="text-sm font-bold bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition">Sign In</button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Hero Section -->
+    <main class="flex-1 flex flex-col items-center justify-center px-6 py-12 md:py-20 text-center">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#222] bg-[#0a0a0a] text-[11px] text-gray-400 mb-8 font-mono tracking-widest uppercase">
+            <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+            No Docker • No YAML • 5 Seconds
+        </div>
+
+        <h1 class="text-4xl md:text-6xl font-bold mb-6 tracking-tight leading-tight">
+            Ephemeral cloud <br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">sandboxes in seconds.</span>
         </h1>
-        <p class="text-lg text-gray-400 mb-10 max-w-2xl">
-            Your AI writes code in seconds. Give it a secure, isolated VM to run it — instantly. No Docker, no YAML, no cloud console.
+
+        <p class="text-gray-400 max-w-lg mb-10 text-sm md:text-base leading-relaxed">
+            The fastest way to deploy and test code. No config, no credit cards, no waiting. Just you and the cloud.
         </p>
 
-        <!-- Terminal Block -->
-        <div class="bg-[#0a0a0a] border border-[#262626] rounded-lg p-5 font-mono text-sm mb-16">
-            <div class="text-gray-500 mb-2"># Install the CLI</div>
-            <div class="text-white mb-6"><span class="text-green-400">$</span> npm i -g @hynaweb/stage</div>
-            
-            <div class="text-gray-500 mb-2"># Deploy an agent sandbox</div>
-            <div class="text-white"><span class="text-green-400">$</span> hyna-stage up -f agent.js</div>
-            <div class="text-gray-300 mt-2">✔ Authenticated via HYNA_API_KEY</div>
-            <div class="text-gray-300">✔ Assigned warm microVM (5.1s)</div>
-            <div class="text-gray-300">✔ Injected context & started daemon</div>
-            <div class="text-blue-400 mt-2">→ Preview URL: https://8x2f-preview.hyna-stage.dev</div>
-            <div class="text-blue-400">→ Sandbox ID: vm_8x2f9q</div>
+        <div class="flex flex-col sm:flex-row gap-4 mb-16 w-full max-w-sm sm:max-w-none justify-center">
+            <button onclick="handleNavClick()" class="bg-indigo-600 text-white font-bold px-8 py-3 rounded-md hover:bg-indigo-500 transition shadow-[0_0_20px_rgba(79,70,229,0.4)]">Start Building</button>
+            <a href="marketplace.html" class="bg-[#0a0a0a] border border-[#222] text-white font-bold px-8 py-3 rounded-md hover:bg-[#111] transition">Explore Marketplace</a>
+            <a href="docs.html" class="bg-[#0a0a0a] border border-[#222] text-white font-bold px-8 py-3 rounded-md hover:bg-[#111] transition">Read Docs</a>
         </div>
 
-        <!-- Benchmark Table -->
-        <h2 class="text-2xl font-bold mb-6">Benchmarks</h2>
-        <div class="overflow-x-auto mb-4">
-            <table class="w-full text-left border-collapse font-mono text-sm">
-                <thead>
-                    <tr class="border-b border-[#333]">
-                        <th class="py-3 pr-6 text-gray-400 font-normal">Scenario</th>
-                        <th class="py-3 pr-6 text-gray-400 font-normal">Time (p50)</th>
-                        <th class="py-3 text-gray-400 font-normal">Notes</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr class="border-b border-[#1f1f1f]">
-                        <td class="py-4 pr-6 text-white">Warm-pool hit</td>
-                        <td class="py-4 pr-6 text-green-400 font-bold">5.1s</td>
-                        <td class="py-4 text-gray-400">Pre-initialized microVM.</td>
-                    </tr>
-                    <tr class="border-b border-[#1f1f1f]">
-                        <td class="py-4 pr-6 text-white">Cold boot</td>
-                        <td class="py-4 pr-6 text-yellow-400">12.4s</td>
-                        <td class="py-4 text-gray-400">Pool exhausted. E2B allocates fresh.</td>
-                    </tr>
-                    <tr class="border-b border-[#1f1f1f]">
-                        <td class="py-4 pr-6 text-white">Cold boot + npm install</td>
-                        <td class="py-4 pr-6 text-red-400">18.2s</td>
-                        <td class="py-4 text-gray-400">Includes network dependency download.</td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- Terminal Window -->
+        <div class="w-full max-w-2xl bg-[#050505] border border-[#222] rounded-xl overflow-hidden shadow-2xl text-left">
+            <div class="bg-[#0a0a0a] px-4 py-3 flex gap-2 border-b border-[#222]">
+                <div class="w-3 h-3 rounded-full bg-[#333]"></div>
+                <div class="w-3 h-3 rounded-full bg-[#333]"></div>
+                <div class="w-3 h-3 rounded-full bg-[#333]"></div>
+            </div>
+            <div class="p-6 font-mono text-sm text-gray-300 leading-relaxed overflow-x-auto">
+                <div class="mb-4">
+                    <span class="text-gray-500"># Install globally</span><br>
+                    <span class="text-blue-400">$</span> npm i -g @hynaweb/stage
+                </div>
+                <div class="mb-4">
+                    <span class="text-gray-500"># Authenticate (one-time)</span><br>
+                    <span class="text-blue-400">$</span> hyna-stage login
+                </div>
+                <div class="mb-6">
+                    <span class="text-gray-500"># Deploy your app</span><br>
+                    <span class="text-blue-400">$</span> hyna-stage up index.html
+                </div>
+                <div class="text-indigo-400">
+                    ✔ Authenticated as user<br>
+                    ✔ Assigned warm E2B MicroVM<br>
+                    ✔ Preview URL: <span class="text-indigo-300 underline">https://3000-xxxx.e2b.app</span>
+                </div>
+            </div>
         </div>
-        <p class="text-xs text-gray-500 leading-relaxed font-mono">
-            * Methodology: Telemetry from Erode, Tamil Nadu to E2B US-East over 4G. p50 latency of 1,000 deployments. Warm pool size: 3 VMs. Base image: E2B code-interpreter. Hardware: 2 vCPU, 2GB RAM.
-        </p>
     </main>
+
+    <!-- LOGIN MODAL -->
+    <div id="loginModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 hidden backdrop-blur-sm">
+        <div class="bg-[#0a0a0a] border border-[#222] p-8 rounded-xl max-w-sm w-full mx-4 relative shadow-2xl text-left">
+            <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white font-bold text-xl">&times;</button>
+            <h2 class="text-2xl font-bold text-white mb-6">Welcome Back</h2>
+            
+            <button onclick="handleGitHubLogin()" class="w-full bg-[#24292f] text-white font-bold py-3 rounded-md hover:bg-[#1b1f23] transition flex items-center justify-center gap-2 mb-4">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                Continue with GitHub
+            </button>
+
+            <div class="flex items-center my-4">
+                <div class="flex-grow border-t border-[#222]"></div>
+                <span class="flex-shrink-0 mx-4 text-gray-500 text-xs uppercase">Or</span>
+                <div class="flex-grow border-t border-[#222]"></div>
+            </div>
+
+            <input type="email" id="loginEmail" placeholder="Email" class="w-full bg-black border border-[#222] text-white p-3 rounded-md mb-4 focus:outline-none focus:border-blue-500 font-mono text-sm">
+            <input type="password" id="loginPassword" placeholder="Password" class="w-full bg-black border border-[#222] text-white p-3 rounded-md mb-2 focus:outline-none focus:border-blue-500 font-mono text-sm">
+            <div id="loginStatus" class="text-xs text-red-500 mb-4 h-4"></div>
+            
+            <button onclick="handleEmailLogin()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-md hover:bg-blue-500 transition">Sign In / Sign Up</button>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://mczesspakhkomlnmfstw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jemVzc3Bha2hrb21sbm1mc3R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0MDE3NTQsImV4cCI6MjEwNzk3Nzc1NH0.yPrC1t9pLZjrffY21hri2bUskuukiRldtiHslhaY3fg';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                document.getElementById('navBtn').innerText = 'Dashboard';
+            }
+        });
+
+        function handleNavClick() {
+            supabaseClient.auth.getSession().then(({ data: { session } }) => {
+                if (session) {
+                    window.location.href = 'dashboard.html';
+                } else {
+                    document.getElementById('loginModal').classList.replace('hidden', 'flex');
+                }
+            });
+        }
+
+        function closeLoginModal() { document.getElementById('loginModal').classList.replace('flex', 'hidden'); }
+
+        async function handleEmailLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const status = document.getElementById('loginStatus');
+            status.innerText = "Authenticating...";
+            
+            let { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error && error.message.includes('Invalid login credentials')) {
+                const { error: signUpError } = await supabaseClient.auth.signUp({ email, password });
+                if (signUpError) return status.innerText = signUpError.message;
+                status.innerText = "Account created!";
+            } else if (error) return status.innerText = error.message;
+            
+            setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+        }
+
+        async function handleGitHubLogin() {
+            const { error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'github',
+                options: { redirectTo: window.location.origin + '/dashboard.html' }
+            });
+            if (error) alert(error.message);
+        }
+    </script>
 </body>
 </html>

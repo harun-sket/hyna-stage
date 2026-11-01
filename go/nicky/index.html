@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HYNA-Stage | Ephemeral Cloud Sandboxes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background-color: #000; color: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        .bg-grid { background-image: radial-gradient(#222 1px, transparent 1px); background-size: 24px 24px; }
+    </style>
+</head>
+<body class="bg-grid min-h-screen flex flex-col">
+
+    <!-- Nav Bar -->
+    <nav class="flex justify-between items-center px-6 py-5 max-w-5xl mx-auto w-full border-b border-[#1a1a1a]">
+        <div class="flex items-center text-lg font-bold tracking-tight">
+            <img src="/logo.png" class="w-6 h-6 mr-2" onerror="this.style.display='none'"> HYNA-Stage
+        </div>
+        <div>
+            <button onclick="handleNavClick()" id="navBtn" class="text-sm font-bold bg-white text-black px-4 py-2 rounded-md hover:bg-gray-200 transition">Sign In</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <main class="flex-1 flex flex-col items-center justify-center px-6 py-16 md:py-24 text-center">
+        
+        <!-- NEW TAGLINE -->
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#222] bg-[#0a0a0a] text-[11px] text-gray-400 mb-8 font-mono tracking-widest uppercase">
+            <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+            No Docker • No YAML • 5 Seconds
+        </div>
+
+        <h1 class="text-4xl md:text-6xl font-bold mb-6 tracking-tight leading-tight">
+            Ephemeral cloud <br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">sandboxes in seconds.</span>
+        </h1>
+        
+        <p class="text-gray-400 max-w-lg mb-10 text-sm md:text-base leading-relaxed">
+            The fastest way to deploy and test code. No config, no credit cards, no waiting. Just you and the cloud.
+        </p>
+        
+        <div class="flex flex-col sm:flex-row gap-4 mb-16 w-full max-w-sm sm:max-w-none">
+            <button onclick="handleNavClick()" class="bg-indigo-600 text-white font-bold px-8 py-3 rounded-md hover:bg-indigo-500 transition shadow-[0_0_20px_rgba(79,70,229,0.4)]">Start Building</button>
+            <a href="docs.html" class="bg-[#0a0a0a] border border-[#222] text-white font-bold px-8 py-3 rounded-md hover:bg-[#111] transition">Read Docs</a>
+        </div>
+
+        <!-- Terminal Window -->
+        <div class="w-full max-w-2xl bg-[#050505] border border-[#222] rounded-xl overflow-hidden shadow-2xl text-left">
+            <div class="bg-[#0a0a0a] px-4 py-3 flex gap-2 border-b border-[#222]">
+                <div class="w-3 h-3 rounded-full bg-[#333]"></div>
+                <div class="w-3 h-3 rounded-full bg-[#333]"></div>
+                <div class="w-3 h-3 rounded-full bg-[#333]"></div>
+            </div>
+            <div class="p-6 font-mono text-sm text-gray-300 leading-relaxed overflow-x-auto">
+                <div class="mb-4">
+                    <span class="text-gray-500"># Install globally</span><br>
+                    <span class="text-blue-400">$</span> npm i -g @hynaweb/stage
+                </div>
+                <div class="mb-4">
+                    <span class="text-gray-500"># Authenticate (one-time)</span><br>
+                    <span class="text-blue-400">$</span> hyna-stage login
+                </div>
+                <div class="mb-6">
+                    <span class="text-gray-500"># Deploy your app</span><br>
+                    <span class="text-blue-400">$</span> hyna-stage up index.html
+                </div>
+                <div class="text-indigo-400">
+                    ✔ Authenticated as user<br>
+                    ✔ Assigned warm E2B MicroVM<br>
+                    ✔ Preview URL: <span class="text-indigo-300 underline">https://3000-xxxx.e2b.app</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- LOGIN MODAL -->
+    <div id="loginModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 hidden backdrop-blur-sm">
+        <div class="bg-[#0a0a0a] border border-[#222] p-8 rounded-xl max-w-sm w-full mx-4 relative shadow-2xl text-left">
+            <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white font-bold text-xl">&times;</button>
+            <h2 class="text-2xl font-bold text-white mb-6">Welcome Back</h2>
+            
+            <button onclick="handleGitHubLogin()" class="w-full bg-[#24292f] text-white font-bold py-3 rounded-md hover:bg-[#1b1f23] transition flex items-center justify-center gap-2 mb-4">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                Continue with GitHub
+            </button>
+
+            <div class="flex items-center my-4">
+                <div class="flex-grow border-t border-[#222]"></div>
+                <span class="flex-shrink-0 mx-4 text-gray-500 text-xs uppercase">Or</span>
+                <div class="flex-grow border-t border-[#222]"></div>
+            </div>
+
+            <input type="email" id="loginEmail" placeholder="Email" class="w-full bg-black border border-[#222] text-white p-3 rounded-md mb-4 focus:outline-none focus:border-blue-500 font-mono text-sm">
+            <input type="password" id="loginPassword" placeholder="Password" class="w-full bg-black border border-[#222] text-white p-3 rounded-md mb-2 focus:outline-none focus:border-blue-500 font-mono text-sm">
+            <div id="loginStatus" class="text-xs text-red-500 mb-4 h-4"></div>
+            
+            <button onclick="handleEmailLogin()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-md hover:bg-blue-500 transition">Sign In</button>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://mczesspakhkomlnmfstw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jemVzc3Bha2hrb21sbm1mc3R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0MDE3NTQsImV4cCI6MjEwNzk3Nzc1NH0.yPrC1t9pLZjrffY21hri2bUskuukiRldtiHslhaY3fg';
+        
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Check auth state on load
+        document.addEventListener("DOMContentLoaded", async () => {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                document.getElementById('navBtn').innerText = 'Open Dashboard';
+            }
+        });
+
+        function handleNavClick() {
+            supabaseClient.auth.getSession().then(({ data: { session } }) => {
+                if (session) {
+                    window.location.href = 'dashboard.html';
+                } else {
+                    document.getElementById('loginModal').classList.replace('hidden', 'flex');
+                }
+            });
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.replace('flex', 'hidden');
+        }
+
+        async function handleEmailLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const status = document.getElementById('loginStatus');
+            
+            status.innerText = "Authenticating...";
+            status.classList.replace('text-red-500', 'text-blue-400');
+
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            
+            if (error) {
+                status.innerText = error.message;
+                status.classList.replace('text-blue-400', 'text-red-500');
+            } else {
+                window.location.href = 'dashboard.html';
+            }
+        }
+
+        async function handleGitHubLogin() {
+            const { error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'github',
+                options: { redirectTo: window.location.origin + '/dashboard.html' }
+            });
+            if (error) alert(error.message);
+        }
+    </script>
+
+    <script>
+        // --- REFERRAL TRACKER ---
+        (async function() {
+            const path = window.location.pathname;
+            if (path.startsWith('/go/')) {
+                const refCode = path.split('/')[2]; // gets 'nicky' from '/go/nicky'
+                if (refCode) {
+                    console.log("Referral detected:", refCode);
+                    try {
+                        await fetch('https://mczesspakhkomlnmfstw.supabase.co/rest/v1/referrals', {
+                            method: 'POST',
+                            headers: {
+                                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlhc2xsa3ZkcmducXRqZXNkeWZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyODQwNjgsImV4cCI6MjEwNzg2MDA2OH0.1bD80IRX7agRAK7luYzdsUvFO3uSbfaK1OSo58l4-N4',
+                                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlhc2xsa3ZkcmducXRqZXNkeWZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyODQwNjgsImV4cCI6MjEwNzg2MDA2OH0.1bD80IRX7agRAK7luYzdsUvFO3uSbfaK1OSo58l4-N4',
+                                'Content-Type': 'application/json',
+                                'Prefer': 'return=minimal'
+                            },
+                            body: JSON.stringify({
+                                ref_code: refCode,
+                                project: document.title.includes('KAVLR') ? 'kavlr' : 'hyna-stage'
+                            })
+                        });
+                    } catch (e) {
+                        console.error("Failed to log referral", e);
+                    }
+                }
+            }
+        })();
+    </script>
+</body>
+</html>
