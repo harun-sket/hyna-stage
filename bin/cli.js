@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
+import fs from 'fs';
+import { exec } from 'child_process';
+import path from 'path';
 import chalk from 'chalk';
 import ora from 'ora';
-import fs from 'node:fs';
-import path from 'node:path';
 import os from 'node:os';
 import readline from 'node:readline/promises';
-import { execSync } from 'node:child_process';
 
 const VERSION = '2.1.0';
 const CONFIG_PATH = path.join(os.homedir(), '.hyna-stage');
@@ -81,12 +81,19 @@ async function api(endpoint, { body, auth = true, method = 'POST' } = {}) {
 
 // --- OPEN IN BROWSER HELPER ---
 function openBrowser(url) {
-  try {
-    execSync(`termux-open-url ${url}`, { stdio: 'ignore' });
-  } catch (err) {
-    const opener = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
-    try { execSync(`${opener} ${url}`, { stdio: 'ignore' }); } catch(e) {}
+  let cmd;
+  if (process.platform === 'android' || process.env.PREFIX?.includes('com.termux')) {
+    cmd = `termux-open-url "${url}"`;
+  } else if (process.platform === 'darwin') {
+    cmd = `open "${url}"`;
+  } else if (process.platform === 'win32') {
+    cmd = `start "" "${url}"`;
+  } else {
+    cmd = `xdg-open "${url}"`;
   }
+  exec(cmd, (err) => { 
+    if (err) console.log('⚠️ Could not open browser automatically. Please copy the URL above.'); 
+  });
 }
 
 // --- LOGIN ---
@@ -181,7 +188,28 @@ program.command('up')
   .option('-t, --ttl <seconds>', 'Time-to-live', '600')
   .action(async (file, opts) => {
     requireAuth();
-    await deployFile(file, opts);
+    const content = fs.readFileSync(file, 'utf8');
+    const spinner = ora(`Uploading ${file} to E2B...`).start();
+    try {
+      const d = await api('deploy-stage', { body: { file: path.basename(file), name: opts.name, ttl: Number(opts.ttl), content } });
+      spinner.succeed(chalk.green('Sandbox is live\n'));
+
+      console.log(`  ${chalk.dim('ID')}    ${d.id}`);
+      console.log(`  ${chalk.dim('URL')}   ${chalk.cyan.underline(d.url)}`);
+      console.log(`  ${chalk.dim('TTL')}   ${d.ttl}s\n`);
+
+      const proxyUrl = `https://hyna-verify-proxy.harun9842245.workers.dev?url=${encodeURIComponent(d.url)}`;
+      console.log(`  ${chalk.dim('VERIFY')} ${chalk.cyan.underline(proxyUrl)}\n`);
+
+      const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+      await rl.question(chalk.gray('Press [Enter] to open in browser (or Ctrl+C to exit)...'));
+      rl.close();
+
+      openBrowser(proxyUrl);
+      console.log(chalk.green('\n✔ Opened in browser!\n'));
+    } catch (e) {
+      spinner.fail(chalk.red(e.message));
+    }
   });
 
 // --- WATCH (Live Reload) ---
@@ -317,23 +345,5 @@ program.command('templates')
     }
   });
 
-
-program.command('templates')
-  .description('List available templates from the HYNA Marketplace')
-  .action(async () => {
-    const spinner = ora('Fetching HYNA Marketplace...').start();
-    try {
-      const res = await fetch('https://hyna-verify-proxy.harun9842245.workers.dev/templates');
-      const data = await res.json();
-      spinner.succeed(chalk.green('Available Templates:\n'));
-      
-      for (const [name, config] of Object.entries(data)) {
-        console.log(`  ${chalk.cyan.bold(name)} - Port: ${config.port}`);
-      }
-      console.log('\n' + chalk.gray('Run: hyna-stage init <template> to forge one.'));
-    } catch (e) {
-      spinner.fail(chalk.red('Could not fetch marketplace: ' + e.message));
-    }
-  });
 
 program.parseAsync(process.argv).catch((e) => { console.error(chalk.red(`✖ ${e.message}`)); process.exit(1); });
