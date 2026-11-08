@@ -1,9 +1,14 @@
 node_modules/
 .env
+.env.*
 .supabase/
 *.bak*
 *.py
 *-v*.ts
-deno-deploy-proxy/
 test.html
+test-*.mjs
+deno-deploy-proxy/
 .DS_Store
+.hyna*
+HYNA_SERVICE_KEY
+
